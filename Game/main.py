@@ -160,7 +160,7 @@ while True:  # game loop
     else:
         air_timer += 1
 
-    display.blit(player_image, (player_rect.x + scroll[0], player_rect.y + scroll[1]))  # render player
+    display.blit(player_image, (player_rect.x - scroll[0], player_rect.y - scroll[1]))  # render player
 
     for event in pygame.event.get():  # event loop
         if event.type == QUIT:  # check for window quit
