@@ -42,7 +42,9 @@ def load_map(path):
         game_map.append(list(row))
     return game_map
 
+
 CHUNK_SIZE = 8
+
 
 def generate_chunk(x, y):
     chunk_data = []
@@ -56,7 +58,7 @@ def generate_chunk(x, y):
             elif target_y == 10:
                 tile_type = 1  # grass
             elif target_y == 9:
-                if randint(1, 5) == 1:  #randint is function of random
+                if randint(1, 5) == 1:  # randint is function of random
                     tile_type = 3  # plant
             if tile_type != 0:
                 chunk_data.append([[target_x, target_y], tile_type])
