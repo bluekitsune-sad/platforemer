@@ -65,8 +65,8 @@ player_rect = pygame.Rect(100, 100, 5, 13)
 test_rect = pygame.Rect(100, 100, 100, 50)
 
 background_objects = [[0.25, [120, 10, 70, 400]], [0.25, [280, 30, 40, 400]], [0.5, [30, 40, 40, 400]],
-                      [0.5, [130, 90, 100, 400]], [0.5, [300, 80, 120, 400]]]
-
+                      [0.5, [130, 90, 100, 400]], [0.5, [300, 80, 120, 400]]] # Parallax Scrolling background
+# be carefully of the rendering placement in the background_objects 0.5 should come in last
 
 def collision_test(rect, tiles):
     hit_list = []
