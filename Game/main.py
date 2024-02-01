@@ -39,15 +39,53 @@ def load_map(path):
     return game_map
 
 
+global animation_frames
+animation_frames = {}
+
+
+def load_animation(path, frame_durations):
+    global animation_frames
+    animation_name = path.split('/')[-1]
+    animation_frames_data = []
+    n = 0
+    for frame in frame_durations:
+        animation_frame_id = animation_name + '_' + str(n)
+        img_loc = path + '/' + animation_frame_id + '.png'
+        # player_animations/idle/idle_0.png
+        animation_image = pygame.image.load(img_loc).convert()
+        animation_image.set_colorkey((255, 255, 255))
+        animation_frames[animation_frame_id] = animation_image.copy()
+        for i in range(frame):
+            animation_frames_data.append(animation_frame_id)
+        n += 1
+    return animation_frames_data
+
+
+def change_action(action_var, frame, new_value):  # old action, frames which it is on, new action
+    if action_var != new_value:
+        action_var = new_value
+        frame = 0
+    return action_var, frame
+
+
+animation_database = {}
+
+animation_database['run'] = load_animation('art/player_animations/run', [7, 7])
+animation_database['idle'] = load_animation('art/player_animations/idle', [7, 7, 40])
+
 game_map = load_map("map")
 
-player_image = pygame.image.load('art/player.png').convert()  # just make your own image :)
-player_image.set_colorkey((255, 255, 255))  # making this rgb transparent
+# player_image = pygame.image.load('art/player.png').convert()  # just make your own image :)
+# player_image.set_colorkey((255, 255, 255))  # making this rgb transparent
 
 grass_image = pygame.image.load('art/grass.png')
 TILE_SIZE = grass_image.get_width()  # if width and height is same
 
 dirt_image = pygame.image.load('art/dirt.png')
+
+player_action = 'idle'
+player_frame = 0
+player_flip = False
 
 moving_right = False
 moving_left = False
@@ -65,7 +103,9 @@ player_rect = pygame.Rect(100, 100, 5, 13)
 test_rect = pygame.Rect(100, 100, 100, 50)
 
 background_objects = [[0.25, [120, 10, 70, 400]], [0.25, [280, 30, 40, 400]], [0.5, [30, 40, 40, 400]],
-                      [0.5, [130, 90, 100, 400]], [0.5, [300, 80, 120, 400]]] # Parallax Scrolling background
+                      [0.5, [130, 90, 100, 400]], [0.5, [300, 80, 120, 400]]]  # Parallax Scrolling background
+
+
 # be carefully of the rendering placement in the background_objects 0.5 should come in last
 
 def collision_test(rect, tiles):
@@ -146,6 +186,15 @@ while True:  # game loop
     if player_y_momentum > 3:
         player_y_momentum = 3
 
+    if player_movement[0] == 0:
+        player_action, player_frame = change_action(player_action, player_frame, 'idle')
+    if player_movement[0] > 0:
+        player_flip = False
+        player_action, player_frame = change_action(player_action, player_frame, 'run')
+    if player_movement[0] < 0:
+        player_flip = True
+        player_action, player_frame = change_action(player_action, player_frame, 'run')
+
     player_rect, collisions = move(player_rect, player_movement, tile_rects)
 
     if collisions['bottom']:
@@ -160,7 +209,14 @@ while True:  # game loop
     else:
         air_timer += 1
 
-    display.blit(player_image, (player_rect.x - scroll[0], player_rect.y - scroll[1]))  # render player
+    player_frame += 1
+    if player_frame >= len(animation_database[player_action]):
+        player_frame = 0
+    player_img_id = animation_database[player_action][player_frame]
+    player_img = animation_frames[player_img_id]
+    display.blit(pygame.transform.flip(player_img, player_flip, False),  # flip(image, horizontalFilp, verticalFlip)
+                 (player_rect.x - scroll[0], player_rect.y - scroll[1]))
+    # display.blit(player_image, (player_rect.x - scroll[0], player_rect.y - scroll[1]))  # render player
 
     for event in pygame.event.get():  # event loop
         if event.type == QUIT:  # check for window quit
