@@ -1,9 +1,12 @@
+from random import random, choice
 import pygame, sys
 from pygame.locals import *
 
 clock = pygame.time.Clock()
 
+pygame.mixer.pre_init(44100, -16, 2, 512)  # Frequency, size, channel, buffer
 pygame.init()  # initiates pygame
+pygame.mixer.set_num_channels(64)  # this is so that when handling manySounds we will run out of channel, so we create more channels #64 is the songs it can play at onces
 
 pygame.display.set_caption('Plateformer')
 
@@ -73,7 +76,8 @@ animation_database = {}
 animation_database['run'] = load_animation('art/player_animations/run', [7, 7])
 animation_database['idle'] = load_animation('art/player_animations/idle', [7, 7, 40])
 
-game_map = load_map("map")
+game_map = load_map("map")  # Bringing map from map.txt
+# game_map = {}
 
 # player_image = pygame.image.load('art/player.png').convert()  # just make your own image :)
 # player_image.set_colorkey((255, 255, 255))  # making this rgb transparent
@@ -83,9 +87,19 @@ TILE_SIZE = grass_image.get_width()  # if width and height is same
 
 dirt_image = pygame.image.load('art/dirt.png')
 
+jump_sound = pygame.mixer.Sound('art/music/jump.wav')
+grass_sounds = [pygame.mixer.Sound('art/music/grass_0.wav'), pygame.mixer.Sound('art/music/grass_1.wav')]
+grass_sounds[0].set_volume(0.2)  # 1 is the max
+grass_sounds[1].set_volume(0.2)
+
+pygame.mixer.music.load('art/music/music.wav')
+pygame.mixer.music.play(-1)
+
 player_action = 'idle'
 player_frame = 0
 player_flip = False
+
+grass_sound_timer = 0
 
 moving_right = False
 moving_left = False
@@ -141,6 +155,9 @@ def move(rect, movement, tiles):
 
 while True:  # game loop
     display.fill((146, 244, 255))  # clear screen by filling it with blue
+
+    if grass_sound_timer > 0:
+        grass_sound_timer -= 1
 
     # scroll[0] -= 1  # sideScroller camera
 
@@ -200,6 +217,10 @@ while True:  # game loop
     if collisions['bottom']:
         player_y_momentum = 0
         air_timer = 0
+        if player_movement[0] != 0:
+            if grass_sound_timer == 0:
+                grass_sound_timer = 30
+                choice(grass_sounds).play()  # choice is a random function that picks randomly form a list, dic, db, etc
     else:
         air_timer += 1
 
@@ -223,12 +244,17 @@ while True:  # game loop
             pygame.quit()  # stop pygame
             sys.exit()  # stop script
         if event.type == KEYDOWN:  # this is when the key is pressed down
+            if event.key == K_DOWN:
+                pygame.mixer.music.fadeout(1000)
+            if event.key == K_UP:
+                pygame.mixer.music.play(-1)
             if event.key == K_d:
                 moving_right = True
             if event.key == K_a:
                 moving_left = True
             if event.key == K_w:
                 if air_timer < 6:
+                    jump_sound.play()
                     player_y_momentum = -5
         if event.type == KEYUP:  # this is when the key is coming up
             if event.key == K_d:
